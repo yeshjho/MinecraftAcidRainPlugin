@@ -1,0 +1,5 @@
+name: AcidRain
+version: 1.0.0
+author: yeshjho
+main: com.gmail.yeshjho2.testplugin.TestPlugin
+api-version: 1.17
