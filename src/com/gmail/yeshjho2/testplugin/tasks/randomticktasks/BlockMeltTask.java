@@ -13,7 +13,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.function.Function;
 
-public class StoneMeltTask implements Function<Block, Void>
+public class BlockMeltTask implements Function<Block, Void>
 {
     private static final HashSet<Material> NOT_MELTING_BLOCKS = new HashSet<>(Arrays.asList(
             Material.AIR, Material.CAVE_AIR, Material.BEDROCK, Material.OBSIDIAN, Material.TINTED_GLASS,
@@ -27,6 +27,10 @@ public class StoneMeltTask implements Function<Block, Void>
     ));
     private static final ArrayList<Tag<Material>> NOT_MELTING_BLOCK_TAGS = new ArrayList<>(Arrays.asList(
 
+    ));
+
+    private static final HashSet<Material> BLOCKS_WATER_INSTEAD_OF_AIR_WHEN_MELTED = new HashSet<>(Arrays.asList(
+            Material.ICE, Material.PACKED_ICE, Material.BLUE_ICE, Material.FROSTED_ICE, Material.WATER_CAULDRON
     ));
 
     @Override
@@ -56,22 +60,25 @@ public class StoneMeltTask implements Function<Block, Void>
             final int z = loc.getBlockZ();
 
             final Block upperBlock = world.getBlockAt(x, y + 1, z);
-            if (upperBlock.getType() == Material.WATER)
+            final BlockData upperBlockData = upperBlock.getState().getBlockData();
+			final BlockData blockData = block.getState().getBlockData();
+            if ((upperBlock.getType() == Material.WATER) ||
+				  (upperBlockData instanceof Waterlogged && ((Waterlogged) upperBlockData).isWaterlogged()) ||
+				  (blockData instanceof Waterlogged && ((Waterlogged) blockData).isWaterlogged()))
             {
                 block.setType(Material.WATER);
             }
-            else
-            {
-                final BlockData blockData = upperBlock.getState().getBlockData();
-                if (blockData instanceof Waterlogged && ((Waterlogged) blockData).isWaterlogged())
-                {
-                    block.setType(Material.WATER);
-                }
-                else if (world.hasStorm() && block.getLocation().getY() == world.getHighestBlockYAt(block.getLocation()))
-                {
-                    block.setType(Material.AIR);
-                }
-            }
+			else if (world.hasStorm() && block.getLocation().getY() == world.getHighestBlockYAt(block.getLocation()))
+			{
+				if (BLOCKS_WATER_INSTEAD_OF_AIR_WHEN_MELTED.contains(blockType))
+				{
+					block.setType(Material.WATER);
+				}
+				else
+				{
+					block.setType(Material.AIR);
+				}
+			}
         }
 
         return null;

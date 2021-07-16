@@ -46,6 +46,10 @@ public class ItemMeltTask extends CustomRunnable
                         continue;
                     }
                 }
+                else
+                {
+                    continue;
+                }
 
                 final ItemStack itemStack = item.getItemStack();
                 final Material type = itemStack.getType();

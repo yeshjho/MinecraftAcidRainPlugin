@@ -1,6 +1,6 @@
 package com.gmail.yeshjho2.testplugin.tasks;
 
-import com.gmail.yeshjho2.testplugin.tasks.randomticktasks.StoneMeltTask;
+import com.gmail.yeshjho2.testplugin.tasks.randomticktasks.BlockMeltTask;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -18,7 +18,7 @@ public class RandomTickTask extends CustomRunnable
     {
         this.plugin = plugin;
 
-        randomTickTasks.put("StoneMelt", new StoneMeltTask());
+        randomTickTasks.put("StoneMelt", new BlockMeltTask());
     }
 
     @Override

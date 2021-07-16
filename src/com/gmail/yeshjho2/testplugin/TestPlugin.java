@@ -16,6 +16,7 @@ public class TestPlugin extends JavaPlugin
     {
         taskScheduler.onEnable();
         listenerAdder.onEnable();
+        recipeAdder.AddRecipes();
     }
 
     @Override

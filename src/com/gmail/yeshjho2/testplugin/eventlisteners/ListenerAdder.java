@@ -22,6 +22,8 @@ public class ListenerAdder
         listeners.put("waterDrink", new WaterDrinkEventListener((ThirstTask) TaskScheduler.loops.get("Thirst")));
         listeners.put("NoWaterEntity", new WaterEntityNoSpawnEventListener());
         listeners.put("HazmatSuitBreak", new HazmatSuitBreakEventListener());
+        listeners.put("NoNormalHoe", new HoeUseEventListener());
+        listeners.put("NoMending", new ItemMendEventListener());
     }
 
     public void onEnable()

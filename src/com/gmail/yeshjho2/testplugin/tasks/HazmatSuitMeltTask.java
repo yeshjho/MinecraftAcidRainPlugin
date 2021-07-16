@@ -50,14 +50,14 @@ public class HazmatSuitMeltTask extends CustomRunnable
                 assert itemMeta != null;
                 final int customModelData = itemMeta.hasCustomModelData() ? itemMeta.getCustomModelData() : 0;
 
-                if (item.isInWater())
+                if ((customModelData & HAZMAT_SUIT_CUSTOM_MODEL_DATA) == 0)
                 {
-                    tryRemove(item, itemStack, itemMeta, customModelData);
                     continue;
                 }
 
-                if ((customModelData & HAZMAT_SUIT_CUSTOM_MODEL_DATA) == 0)
+                if (item.isInWater())
                 {
+                    tryRemove(item, itemStack, itemMeta, customModelData);
                     continue;
                 }
 
@@ -67,6 +67,10 @@ public class HazmatSuitMeltTask extends CustomRunnable
                     {
                         continue;
                     }
+                }
+                else
+                {
+                    continue;
                 }
 
                 tryRemove(item, itemStack, itemMeta, customModelData);

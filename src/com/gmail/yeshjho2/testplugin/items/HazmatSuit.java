@@ -16,9 +16,9 @@ import static com.gmail.yeshjho2.testplugin.Constants.*;
 public class HazmatSuit
 {
     public static final HashMap<Integer, Integer> DAMAGE_PER_TIER = new HashMap<>() {{
-        put(HAZMAT_SUIT_TIER_1, 1);
-        put(HAZMAT_SUIT_TIER_2, 1);
-        put(HAZMAT_SUIT_TIER_3, 0);
+        put(HAZMAT_SUIT_TIER_1_CUSTOM_MODEL_DATA, 1);
+        put(HAZMAT_SUIT_TIER_2_CUSTOM_MODEL_DATA, 1);
+        put(HAZMAT_SUIT_TIER_3_CUSTOM_MODEL_DATA, 0);
     }};
 
     private static final ArrayList<EquipmentSlot> SLOT_NUMS = new ArrayList<>(Arrays.asList(
