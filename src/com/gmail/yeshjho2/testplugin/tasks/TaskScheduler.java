@@ -29,11 +29,12 @@ public class TaskScheduler
     {
         this.plugin = plugin;
 
-        putLoop("RandomTick", new RandomTickTask(plugin), 0, 20);
+//        putLoop("RandomTick", new RandomTickTask(plugin), 0, 20);
+        putLoop("BlockMelt", new BlockMeltTask(plugin), 0, 20);
         putLoop("WaterDamage", new WaterDamageTask(plugin), 0, 1);
         putLoop("Thirst", new ThirstTask(plugin), 0, 1);
         putLoop("Rain", new RainTask(plugin), 0, 1);
-        putLoop("ItemMelt", new ItemMeltTask(plugin), 0, 3);
+        putLoop("ItemMelt", new ItemMeltTask(plugin), 0, 5);
         putLoop("HazmatSuitMelt", new HazmatSuitMeltTask(plugin), 0, 20);
         putLoop("BoatKill", new BoatKillTask(plugin), 0, 10);
 

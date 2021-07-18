@@ -1,5 +1,7 @@
 package com.gmail.yeshjho2.testplugin.tasks;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.stream.JsonWriter;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -15,12 +17,12 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 
 public class ThirstTask extends CustomRunnable
 {
     private static final int MAX_THIRST = 20;
+    private static final int FIRST_MAX_THIRST = 50;
     private static final int THIRST_COOL_TIME = 600;
     private static final int WATER_THIRST_RESTORE_AMOUNT = 4;
 
@@ -30,6 +32,7 @@ public class ThirstTask extends CustomRunnable
 
     private final HashMap<Integer, Integer> thirst = new HashMap<>();
     private final HashMap<Player, Integer> thirstCoolTime = new HashMap<>();
+    private final HashMap<Integer, Boolean> isFirstThirst = new HashMap<>();
 
     public ThirstTask(JavaPlugin plugin)
     {
@@ -48,7 +51,13 @@ public class ThirstTask extends CustomRunnable
 
     private void checkForThresholds(Player player)
     {
-        final Integer playerThirst = thirst.getOrDefault(player.hashCode(), MAX_THIRST);
+        final int hashCode = player.hashCode();
+        final int playerThirst = thirst.getOrDefault(hashCode, isFirstThirst.getOrDefault(hashCode, true) ? FIRST_MAX_THIRST : MAX_THIRST);
+
+        if (playerThirst <= 20)
+        {
+            isFirstThirst.put(player.hashCode(), false);
+        }
 
         if (playerThirst <= 5)
         {
@@ -78,7 +87,13 @@ public class ThirstTask extends CustomRunnable
 
     public void onPlayerDrinkWater(Player player)
     {
-        putThirst(player, thirst.getOrDefault(player.hashCode(), MAX_THIRST) + WATER_THIRST_RESTORE_AMOUNT);
+        final int hashCode = player.hashCode();
+        if (isFirstThirst.getOrDefault(hashCode, true))
+        {
+            return;
+        }
+
+        putThirst(player, thirst.getOrDefault(hashCode, MAX_THIRST) + WATER_THIRST_RESTORE_AMOUNT);
         thirstCoolTime.put(player, THIRST_COOL_TIME);
         checkForThresholds(player);
     }
@@ -98,7 +113,8 @@ public class ThirstTask extends CustomRunnable
 
             if (coolTime - 1 <= 0)
             {
-                final Integer playerThirst = thirst.getOrDefault(player.hashCode(), MAX_THIRST);
+                final int hashCode = player.hashCode();
+                final int playerThirst = thirst.getOrDefault(hashCode, isFirstThirst.getOrDefault(hashCode, true) ? FIRST_MAX_THIRST : MAX_THIRST);
                 putThirst(player, playerThirst - 1);
                 thirstCoolTime.put(player, THIRST_COOL_TIME);
             }
@@ -114,9 +130,16 @@ public class ThirstTask extends CustomRunnable
         {
             JSONObject thirstFile = (JSONObject) new JSONParser().parse(new FileReader("data/thirst.json"));
 
-            for (Object key : thirstFile.keySet())
+            JSONObject thirstData = (JSONObject) thirstFile.get("thirst");
+            for (Object key : thirstData.keySet())
             {
-                thirst.put(Integer.valueOf((String) key), (int) (long) thirstFile.get(key));
+                thirst.put(Integer.valueOf((String) key), (int) (long) thirstData.get(key));
+            }
+
+            JSONObject isFirstData = (JSONObject) thirstFile.get("isFirst");
+            for (Object key : isFirstData.keySet())
+            {
+                isFirstThirst.put(Integer.valueOf((String) key), (boolean) isFirstData.get(key));
             }
         }
         catch (IOException | ParseException e)
@@ -142,12 +165,16 @@ public class ThirstTask extends CustomRunnable
         try
         {
             JsonWriter writer = new JsonWriter(new FileWriter(thirstFile, false));
+            Gson builder = new GsonBuilder().create();
 
             writer.beginObject();
-            for (Map.Entry<Integer, Integer> pair : thirst.entrySet())
-            {
-                writer.name(pair.getKey().toString()).value(pair.getValue());
-            }
+
+            writer.name("thirst");
+            builder.toJson(thirst, HashMap.class, writer);
+
+            writer.name("isFirst");
+            builder.toJson(isFirstThirst, HashMap.class, writer);
+
             writer.endObject();
             writer.flush();
         }
