@@ -1,11 +1,9 @@
 package com.gmail.yeshjho2.testplugin.tasks;
 
-import com.gmail.yeshjho2.testplugin.items.HazmatSuit;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Item;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -26,13 +24,20 @@ public class ItemMeltTask extends CustomRunnable
     {
         for (World world : plugin.getServer().getWorlds())
         {
-            if (world.getEnvironment() != World.Environment.NORMAL)
+            if (world.getEnvironment() == World.Environment.NETHER)
             {
                 continue;
             }
 
             for (Item item : world.getEntitiesByClass(Item.class))
             {
+                final ItemStack itemStack = item.getItemStack();
+                final Material type = itemStack.getType();
+                if (ACID_PROOF_MATERIALS.contains(type))
+                {
+                    continue;
+                }
+
                 if (item.isInWater())
                 {
                     item.remove();
@@ -47,13 +52,6 @@ public class ItemMeltTask extends CustomRunnable
                     }
                 }
                 else
-                {
-                    continue;
-                }
-
-                final ItemStack itemStack = item.getItemStack();
-                final Material type = itemStack.getType();
-                if (ACID_PROOF_MATERIALS.contains(type))
                 {
                     continue;
                 }

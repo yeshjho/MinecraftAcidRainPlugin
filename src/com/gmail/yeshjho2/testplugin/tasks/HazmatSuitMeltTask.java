@@ -38,7 +38,7 @@ public class HazmatSuitMeltTask extends CustomRunnable
     {
         for (World world : plugin.getServer().getWorlds())
         {
-            if (world.getEnvironment() != World.Environment.NORMAL)
+            if (world.getEnvironment() == World.Environment.NETHER)
             {
                 continue;
             }

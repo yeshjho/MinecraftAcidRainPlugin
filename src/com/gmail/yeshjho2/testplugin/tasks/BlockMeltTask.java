@@ -1,5 +1,6 @@
 package com.gmail.yeshjho2.testplugin.tasks;
 
+import com.gmail.yeshjho2.testplugin.Settings;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.stream.JsonWriter;
@@ -8,10 +9,12 @@ import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Levelled;
 import org.bukkit.block.data.Waterlogged;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import oshi.util.tuples.Pair;
 
 import java.io.File;
 import java.io.FileReader;
@@ -21,6 +24,11 @@ import java.util.*;
 
 public class BlockMeltTask extends CustomRunnable
 {
+    private final long MAX_LEAPING_SECOND = Settings.get("BlockMeltMaxLeapingSecond", 5);
+    private final int NO_SIMULATE_RAIN_PLAYER_NEARBY_CHUNK = Settings.get("BlockMeltNoSimulateRainPlayerNearbyChunkRadius", 5);
+
+    private final int RANDOM_TICK_BLOCKS = Settings.get("BlockMeltRandomTickBlocks", 3);
+
     private static final HashSet<Material> ACID_BLOCKS = new HashSet<>(Arrays.asList(
             Material.WATER, Material.KELP_PLANT, Material.SEAGRASS, Material.TALL_SEAGRASS
     ));
@@ -61,9 +69,16 @@ public class BlockMeltTask extends CustomRunnable
         final Random random = new Random();
         for (World world : plugin.getServer().getWorlds())
         {
-            if (world.getEnvironment() != World.Environment.NORMAL)
+            if (world.getEnvironment() == World.Environment.NETHER)
             {
                 continue;
+            }
+
+            final ArrayList<Pair<Integer, Integer>> playerChunks = new ArrayList<>();
+            for (Player player : world.getPlayers())
+            {
+                final Chunk chunk = player.getLocation().getChunk();
+                playerChunks.add(new Pair<>(chunk.getX(), chunk.getZ()));
             }
 
             final boolean isRaining = world.hasStorm();
@@ -83,9 +98,27 @@ public class BlockMeltTask extends CustomRunnable
                 final long thisChunkSimulatedSecond = chunkSimulatedSecond.getOrDefault(chunkHashCode, 0L);
                 final long thisChunkRainSecond = chunkRainSecond.getOrDefault(chunkHashCode, 0L);
 
-                final int defaultBlockCountPerSec = Optional.ofNullable(world.getGameRuleValue(GameRule.RANDOM_TICK_SPEED)).orElse(3) * 20;
-                final long blocksToSelect = defaultBlockCountPerSec * (thisWorldSimulatedSecond - thisChunkSimulatedSecond);
-                final long blocksToSelectWhileRaining = defaultBlockCountPerSec * (thisWorldRainSecond - thisChunkRainSecond);
+                final int defaultBlockCountPerSec = RANDOM_TICK_BLOCKS * 20;
+
+                final long secondsToLeap = Long.min(MAX_LEAPING_SECOND, thisWorldSimulatedSecond - thisChunkSimulatedSecond);
+                long secondsToLeapWhileRaining = Long.min(secondsToLeap, thisWorldRainSecond - thisChunkRainSecond);
+                if (!isRaining)
+                {
+                    final int chunkX = chunk.getX();
+                    final int chunkZ = chunk.getZ();
+                    for (Pair<Integer, Integer> pair : playerChunks)
+                    {
+                        final int xDiff = pair.getA() - chunkX;
+                        final int zDiff = pair.getB() - chunkZ;
+                        if ((xDiff * xDiff + zDiff * zDiff) <= NO_SIMULATE_RAIN_PLAYER_NEARBY_CHUNK * NO_SIMULATE_RAIN_PLAYER_NEARBY_CHUNK)
+                        {
+                            secondsToLeapWhileRaining = 0;
+                            break;
+                        }
+                    }
+                }
+                final long blocksToSelect = defaultBlockCountPerSec * secondsToLeap;
+                final long blocksToSelectWhileRaining = defaultBlockCountPerSec * secondsToLeapWhileRaining;
 
                 for (long i = 0; i < blocksToSelect; ++i)
                 {
@@ -93,8 +126,8 @@ public class BlockMeltTask extends CustomRunnable
                     tryMeltBlock(block, i < blocksToSelectWhileRaining);
                 }
 
-                chunkSimulatedSecond.put(chunkHashCode, thisWorldSimulatedSecond);
-                chunkRainSecond.put(chunkHashCode, thisWorldRainSecond);
+                chunkSimulatedSecond.put(chunkHashCode, thisChunkSimulatedSecond + secondsToLeap);
+                chunkRainSecond.put(chunkHashCode, thisChunkRainSecond + secondsToLeapWhileRaining);
             }
         }
     }

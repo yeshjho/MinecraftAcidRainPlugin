@@ -1,5 +1,6 @@
 package com.gmail.yeshjho2.testplugin.recipes;
 
+import com.gmail.yeshjho2.testplugin.Settings;
 import org.bukkit.*;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.*;
@@ -18,7 +19,7 @@ public class RecipeAdder
             Material.DIAMOND_HOE, Material.NETHERITE_HOE
     ));
 
-    private JavaPlugin plugin;
+    private final JavaPlugin plugin;
 
     private ItemStack makeItem(Material material, String name, int customModelData, boolean doEnchant, boolean makeUnrepairable)
     {
@@ -98,7 +99,7 @@ public class RecipeAdder
         {
             final ItemStack antiAcidOreItem = antiAcidOreItems.get(i);
             final Material antiAcidOreMaterial = antiAcidOreMaterials.get(i);
-            for (int j = 1; j <= 3; j++)
+            for (int j = 1; j <= Settings.get("AntiAcidAmethystMaxRatio", 3); j++)
             {
                 final ItemStack antiAcidOreItemWithCount = antiAcidOreItem.clone();
                 antiAcidOreItemWithCount.setAmount(j);

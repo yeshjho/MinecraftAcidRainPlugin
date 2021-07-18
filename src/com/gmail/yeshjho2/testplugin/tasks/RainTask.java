@@ -1,5 +1,6 @@
 package com.gmail.yeshjho2.testplugin.tasks;
 
+import com.gmail.yeshjho2.testplugin.Settings;
 import com.gmail.yeshjho2.testplugin.items.HazmatSuit;
 import org.bukkit.World;
 import org.bukkit.entity.EntityType;
@@ -16,11 +17,12 @@ import static java.lang.Integer.min;
 
 public class RainTask extends CustomRunnable
 {
-    private static final float RAIN_PROBABILITY = 0.13f / 20f / 60f;
-    private static final int RAIN_DURATION = 3 * 60 * 20;
+    private final float RAIN_PROBABILITY = Settings.get("RainProbPerTick", 0.13f / 20f / 60f);
+    private final int RAIN_MIN_DURATION = Settings.get("RainMinDuration", 1 * 60 * 20);
+    private final int RAIN_MAX_DURATION = Settings.get("RainMaxDuration", 4 * 60 * 20);
 
-    private static final double RAIN_DAMAGE = 2;
-    private static final int RAIN_DAMAGE_COOL_TIME = 20;
+    private final double RAIN_DAMAGE = Settings.get("RainDamage", 2);
+    private final int RAIN_DAMAGE_COOL_TIME = Settings.get("RainDamageCoolTime", 20);
 
     private static final HashSet<EntityType> DAMAGE_ENTITY_TYPES = new HashSet<>(Arrays.asList(
             EntityType.PLAYER, EntityType.BAT, EntityType.CAT, EntityType.CHICKEN, EntityType.COW, EntityType.DONKEY,
@@ -43,7 +45,8 @@ public class RainTask extends CustomRunnable
     @Override
     public void run()
     {
-        if (new Random().nextFloat() < RAIN_PROBABILITY)
+        final Random random = new Random();
+        if (random.nextFloat() < RAIN_PROBABILITY)
         {
             for (World world : plugin.getServer().getWorlds())
             {
@@ -52,10 +55,11 @@ public class RainTask extends CustomRunnable
                     continue;
                 }
 
+                final int rainDuration = random.nextInt(RAIN_MAX_DURATION - RAIN_MIN_DURATION) + RAIN_MIN_DURATION;
                 world.setStorm(true);
-                world.setWeatherDuration(RAIN_DURATION);
+                world.setWeatherDuration(rainDuration);
                 world.setThundering(true);
-                world.setThunderDuration(RAIN_DURATION);
+                world.setThunderDuration(rainDuration);
             }
         }
 

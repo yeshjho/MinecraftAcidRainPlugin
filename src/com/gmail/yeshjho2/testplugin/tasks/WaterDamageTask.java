@@ -1,16 +1,11 @@
 package com.gmail.yeshjho2.testplugin.tasks;
 
+import com.gmail.yeshjho2.testplugin.Settings;
 import com.gmail.yeshjho2.testplugin.items.HazmatSuit;
-import org.bukkit.Material;
-import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Item;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.Damageable;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Arrays;
@@ -22,8 +17,8 @@ import static java.lang.Integer.min;
 
 public class WaterDamageTask extends CustomRunnable
 {
-    private static final int WATER_DAMAGE_COOL_TIME = 20;
-    private static final double WATER_DAMAGE = 8;
+    private final double WATER_DAMAGE = Settings.get("WaterDamage", 8);
+    private final int WATER_DAMAGE_COOL_TIME = Settings.get("WaterDamageCoolTime", 20);
 
     private static final HashSet<EntityType> DAMAGE_ENTITY_TYPES = new HashSet<>(Arrays.asList(
             EntityType.PLAYER, EntityType.BAT, EntityType.CAT, EntityType.CHICKEN, EntityType.COW, EntityType.DONKEY,
@@ -49,7 +44,7 @@ public class WaterDamageTask extends CustomRunnable
     {
         for (World world : plugin.getServer().getWorlds())
         {
-            if (world.getEnvironment() != World.Environment.NORMAL)
+            if (world.getEnvironment() == World.Environment.NETHER)
             {
                 continue;
             }

@@ -1,5 +1,6 @@
 package com.gmail.yeshjho2.testplugin.tasks;
 
+import com.gmail.yeshjho2.testplugin.Settings;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.stream.JsonWriter;
@@ -21,12 +22,16 @@ import java.util.Objects;
 
 public class ThirstTask extends CustomRunnable
 {
-    private static final int MAX_THIRST = 20;
-    private static final int FIRST_MAX_THIRST = 50;
-    private static final int THIRST_COOL_TIME = 600;
-    private static final int WATER_THIRST_RESTORE_AMOUNT = 4;
+    private final int MAX_THIRST = Settings.get("MaxThirst", 20);
+    private final int FIRST_MAX_THIRST = Settings.get("FirstMaxThirst", 50);
+    private final int THIRST_COOL_TIME = Settings.get("ThirstCoolTime", 600);
+    private final int WATER_THIRST_RESTORE_AMOUNT = Settings.get("WaterThirstRestoreAmount", 4);
+    private final int SLOW_THIRST_THRESHOLD = Settings.get("SlowThirstThreshold", 5);
+    private final int SLOW_AMPLIFIER = Settings.get("ThirstSlowAmplifier", 2);
+    private final int NAUSEA_THIRST_THRESHOLD = Settings.get("NauseaThirstThreshold", 3);
+    private final int NAUSEA_AMPLIFIER = Settings.get("ThirstNauseaAmplifier", 255);
 
-    private static final int NON_OVER_WORLD_MULTIPLIER = 3;
+    private final int NON_OVER_WORLD_MULTIPLIER = Settings.get("NonOverWorldThirstMultiplier", 3);
 
     private final JavaPlugin plugin;
 
@@ -41,7 +46,7 @@ public class ThirstTask extends CustomRunnable
 
     private void putThirst(Player player, Integer v)
     {
-        if (v > MAX_THIRST)
+        if (v > (isFirstThirst.getOrDefault(player.hashCode(), true) ? FIRST_MAX_THIRST : MAX_THIRST))
         {
             v = MAX_THIRST;
         }
@@ -54,23 +59,23 @@ public class ThirstTask extends CustomRunnable
         final int hashCode = player.hashCode();
         final int playerThirst = thirst.getOrDefault(hashCode, isFirstThirst.getOrDefault(hashCode, true) ? FIRST_MAX_THIRST : MAX_THIRST);
 
-        if (playerThirst <= 20)
+        if (playerThirst <= MAX_THIRST)
         {
             isFirstThirst.put(player.hashCode(), false);
         }
 
-        if (playerThirst <= 5)
+        if (playerThirst <= SLOW_THIRST_THRESHOLD)
         {
-            player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, Integer.MAX_VALUE, 2, true));
+            player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, Integer.MAX_VALUE, SLOW_AMPLIFIER, true));
         }
         else
         {
             player.removePotionEffect(PotionEffectType.SLOW);
         }
 
-        if (playerThirst <= 3)
+        if (playerThirst <= NAUSEA_THIRST_THRESHOLD)
         {
-            player.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, Integer.MAX_VALUE, 255, true));
+            player.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, Integer.MAX_VALUE, NAUSEA_AMPLIFIER, true));
         }
         else
         {
